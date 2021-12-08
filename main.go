@@ -6,12 +6,11 @@ import (
 	"errors"
 	firebase "firebase.google.com/go"
 	"fmt"
-	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 	"log"
+	"net/http"
 	"os"
 	"time"
-	"net/http"
 )
 
 type user struct {
@@ -77,8 +76,6 @@ func pickup(w http.ResponseWriter, req *http.Request) {
 	uid := getRequestUid(w, req)
 	fmt.Printf("uid passed: %s\n", uid)
 
-	//opt := option.WithCredentialsFile("ServiceAccountKey.json")
-
 	select {
 	case <-time.After(3 * time.Second):
 
@@ -91,7 +88,6 @@ func pickup(w http.ResponseWriter, req *http.Request) {
 		}
 
 		opt := option.WithCredentialsJSON([]byte(fbConfigString))
-
 		app, err := firebase.NewApp(context.Background(), nil, opt)
 		if err != nil {
 			log.Fatal(err)
@@ -104,22 +100,14 @@ func pickup(w http.ResponseWriter, req *http.Request) {
 			log.Fatalln(err)
 		}
 
-		//doc := client.Collection()
-		iter := client.Collection("users").Documents(ctx)
-		for {
-			doc, err := iter.Next()
-			if err == iterator.Done {
-				break
-			}
-			if err != nil {
-				log.Fatalf("Failed to iterate: %v", err)
-			}
-			fmt.Println(doc.Data())
+		dsnap, err := client.Collection("users").Doc(uid).Get(ctx)
+		if err != nil {
+			log.Fatalln(err)
 		}
-
+		m := dsnap.Data()
+		fmt.Printf("Document data: %#v\n", m)
+		fmt.Fprintf(w, "Hey, %s, A runner is on the way to pickup your dirty laundry!\n", m["first"])
 		defer client.Close()
-
-		fmt.Fprintf(w, "A Runner is on the way!\n")
 
 	case <-ctx.Done():
 		err := ctx.Err()
@@ -127,6 +115,7 @@ func pickup(w http.ResponseWriter, req *http.Request) {
 		internalError := http.StatusInternalServerError
 		http.Error(w, err.Error(), internalError)
 	}
+
 }
 
 func main() {
