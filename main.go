@@ -6,6 +6,8 @@ import (
 	"errors"
 	firebase "firebase.google.com/go"
 	"fmt"
+	twilio "github.com/twilio/twilio-go"
+	openapi "github.com/twilio/twilio-go/rest/api/v2010"
 	"google.golang.org/api/option"
 	"log"
 	"net/http"
@@ -105,9 +107,24 @@ func pickup(w http.ResponseWriter, req *http.Request) {
 			log.Fatalln(err)
 		}
 		m := dsnap.Data()
+		firstName := m["first"]
+		toNumber := m["phone"]
+
 		fmt.Printf("Document data: %#v\n", m)
-		fmt.Fprintf(w, "Hey, %s, A runner is on the way to pickup your dirty laundry!\n", m["first"])
 		defer client.Close()
+
+		twilioClient := twilio.NewRestClient()
+		params := &openapi.CreateMessageParams{}
+		params.SetTo(toNumber.(string))
+		params.SetFrom(os.Getenv("TWILIO_PHONE_NUMBER"))
+		text := fmt.Sprintf("Hey, %s, a runner is on the way to pickup your dirty laundry!", firstName)
+		params.SetBody(text)
+		_, err = twilioClient.ApiV2010.CreateMessage(params)
+		if err != nil {
+			fmt.Println(err.Error())
+		} else {
+			fmt.Println("SMS sent successfully!")
+		}
 
 	case <-ctx.Done():
 		err := ctx.Err()
