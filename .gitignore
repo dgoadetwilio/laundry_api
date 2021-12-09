@@ -17,3 +17,9 @@
 # IDE's
 .idea/
 *.iml
+
+# built binaries
+bin/*
+
+# docker env file with secrets
+dev.env
