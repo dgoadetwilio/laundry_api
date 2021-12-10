@@ -42,6 +42,10 @@ func errorResponse(w http.ResponseWriter, message string, httpStatusCode int) {
 	w.Write(jsonResp)
 }
 
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+}
+
 func getRequestUid(w http.ResponseWriter, r *http.Request) string {
 
 	headerContentTtype := r.Header.Get("Content-Type")
@@ -71,6 +75,7 @@ func getRequestUid(w http.ResponseWriter, r *http.Request) string {
 
 func pickup(w http.ResponseWriter, req *http.Request) {
 
+	enableCors(&w)
 	ctx := req.Context()
 	fmt.Println("server: pickup handler started")
 	defer fmt.Println("server:  pickup handler ended")

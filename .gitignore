@@ -23,3 +23,6 @@ bin/*
 
 # docker env file with secrets
 dev.env
+
+# k8s secrets
+k8s/*/secrets.yaml

@@ -1,0 +1,41 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laundry-api
+  namespace: mercury
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: laundry-api
+  template:
+    metadata:
+      labels:
+        app: laundry-api
+    spec:
+      containers:
+        - name: laundry-api
+          image: dgoade/laundry_api:1.2
+          imagePullPolicy: Always
+          workingDir: /opt/tweek
+          command:
+            - ./laundry_api
+          ports:
+            - containerPort: 8090
+          env:
+            - name: TWILIO_PHONE_NUMBER
+              value: "7038320301"
+            - name: TWILIO_ACCOUNT_SID
+              value: ACa869fcb7634855b4eb56b7c993c8f5dc
+            - name: TWILIO_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  key: twilio_auth_token
+                  name: laundry-api
+            - name: FIREBASE_CONFIG
+              valueFrom:
+                secretKeyRef:
+                  key: firebase_config
+                  name: laundry-api

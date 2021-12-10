@@ -3,7 +3,7 @@
 API_NAME=laundry_api
 echo "building ${API_NAME} for linux..."
 set -x
-env GOOS=linux GOARCH=arm go build -o "bin/${API_NAME}" -v main.go
+env GOOS=linux go build -o "bin/${API_NAME}" -v main.go
 EXIT_STATUS=${?}
 set +x
 
