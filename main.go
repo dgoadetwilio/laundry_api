@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"time"
+	"github.com/rs/cors"
 )
 
 type user struct {
@@ -40,10 +41,6 @@ func errorResponse(w http.ResponseWriter, message string, httpStatusCode int) {
 	resp["message"] = message
 	jsonResp, _ := json.Marshal(resp)
 	w.Write(jsonResp)
-}
-
-func enableCors(w *http.ResponseWriter) {
-	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 }
 
 func getRequestUid(w http.ResponseWriter, r *http.Request) string {
@@ -75,7 +72,6 @@ func getRequestUid(w http.ResponseWriter, r *http.Request) string {
 
 func pickup(w http.ResponseWriter, req *http.Request) {
 
-	enableCors(&w)
 	ctx := req.Context()
 	fmt.Println("server: pickup handler started")
 	defer fmt.Println("server:  pickup handler ended")
@@ -142,9 +138,17 @@ func pickup(w http.ResponseWriter, req *http.Request) {
 
 func main() {
 
-	http.HandleFunc("/hello", hello)
-	http.HandleFunc("/headers", headers)
-	http.HandleFunc("/pickup", pickup)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/pickup", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		pickup(w, r)
+	})
 
-	http.ListenAndServe(":8090", nil)
+	// cors.Default() setup the middleware with default options being
+	// all origins accepted with simple methods (GET, POST). See
+	// documentation below for more options.
+	handler := cors.Default().Handler(mux)
+
+	http.ListenAndServe(":8090", handler)
+
 }
